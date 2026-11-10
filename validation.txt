@@ -1,0 +1,26 @@
+Validation / 验证记录
+MATLAB R2023b, maci64, local Mac. No real NI/ATS hardware accessed.
+MATLAB R2023b，Mac 本机运行；未访问真实 NI/ATS 硬件。
+
+PASS: Both default entry points run in offline mode without hardware or synthetic measurement success.
+PASS: MATLAB Code Analyzer reports no messages for the six production .m files.
+PASS: Default X forward/return count = 210 steps; Y row = 2 steps; total Y return = 4 steps.
+PASS: NPT has 20 commanded triggers; TS has one. Both modes have identical motor columns.
+PASS: First trigger follows startStep completed STEP cycles; changing startStep shifts it predictably; repeated sequence generation is identical.
+PASS: ny=1 has zero Y return steps; invalid geometry, speed, ADC rate and record sizes are rejected.
+PASS: Preview dimensions and ADC-code-to-voltage scaling on synthetic arrays.
+PASS: Full two-row NPT and TS runs through the actual acquisition procedure using isolated fake SDK/NI interfaces.
+PASS: Preload precedes ATS arm; ATS arm precedes NI start; return commands occur after ATS abort.
+PASS: Exact raw sample ordering across recycled buffers; final TS buffer cropped to the requested count.
+PASS: Row files and final summary saved; X/Y return commands generated; all mock DMA allocations freed.
+PASS: Injected allocation failure and missing-trigger timeout stop NI, abort ATS, free allocated buffers, and do not report completion.
+PASS: All 239 production code lines match the English/Chinese guide rows and inline comments.
+
+离线和模拟接口测试通过：入口、时序/步数、起点移动、参数检查、预览换算、触发先后、缓冲区循环/裁剪、逐行保存、回程命令和故障清理。
+
+Limits / 限制：
+Mock tests validate software logic, not vendor driver behavior, PCIe throughput, physical timing, wiring, motor displacement, laser alignment, or PAM image validity. Hardware validation remains necessary.
+模拟接口测试只能验证软件逻辑，不能证明厂商驱动行为、PCIe 吞吐量、真实时序、接线、电机位移、激光对齐或 PAM 成像有效性；硬件验证仍待完成。
+
+Verification helpers remain in the separate Downloads/workspace simple_cscan_verification folder and are not included in this repository package. Its fake platform/DAQ/SDK functions must NOT be placed on the laboratory MATLAB path.
+验证脚本保留在 Downloads/工作区中单独的 simple_cscan_verification 文件夹，不包含在本仓库的学习包中。其中的模拟平台/DAQ/SDK 函数不能加入实验室 MATLAB 路径。

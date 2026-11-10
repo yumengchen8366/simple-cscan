@@ -1,0 +1,1209 @@
+{
+  "cscan_npt.m": [
+    [
+      "function result = cscan_npt(p)",
+      "Entry point for the NPT version; return a result structure.",
+      "NPT 版入口；返回包含结果的结构体。"
+    ],
+    [
+      "if nargin == 0",
+      "If you supplied no settings, use the example settings.",
+      "如果没有传入参数，就使用示例设置。"
+    ],
+    [
+      "    p = cscan_settings();",
+      "Get the editable settings from one small function.",
+      "从一个小函数读取可修改的参数。"
+    ],
+    [
+      "end",
+      "Finish the default-settings check.",
+      "结束默认参数判断。"
+    ],
+    [
+      "result = run_cscan(p, \"NPT\");",
+      "Run the raster using one short record per planned X position.",
+      "执行栅格扫描，每个计划 X 位置采一条短记录。"
+    ],
+    [
+      "end",
+      "Finish this entry function.",
+      "结束入口函数。"
+    ]
+  ],
+  "cscan_triggered_streaming.m": [
+    [
+      "function result = cscan_triggered_streaming(p)",
+      "Entry point for the per-row Triggered Streaming version.",
+      "每行触发一次的 Triggered Streaming 版入口。"
+    ],
+    [
+      "if nargin == 0",
+      "Use the example settings when no settings are supplied.",
+      "没有传入参数时使用示例设置。"
+    ],
+    [
+      "    p = cscan_settings();",
+      "Read the same settings used by the NPT version.",
+      "读取与 NPT 版共用的参数。"
+    ],
+    [
+      "end",
+      "Finish the default-settings check.",
+      "结束默认参数判断。"
+    ],
+    [
+      "result = run_cscan(p, \"TS\");",
+      "One trigger starts gapless sampling for each row.",
+      "每行由一个触发启动连续无间断采样。"
+    ],
+    [
+      "end",
+      "Finish this entry function.",
+      "结束入口函数。"
+    ]
+  ],
+  "cscan_settings.m": [
+    [
+      "function p = cscan_settings()",
+      "Keep the parameters together so they are easy to find.",
+      "把参数放在一起，方便查找和修改。"
+    ],
+    [
+      "p.runHardware = false;",
+      "Default: calculate and plot the sequence without using either board.",
+      "默认只计算和画时序，不连接两块板卡。"
+    ],
+    [
+      "p.showPlot = true;",
+      "Display the planned timing and, after a real run, the preview.",
+      "显示计划时序；真实运行后显示预览图。"
+    ],
+    [
+      "p.device = \"Dev1\";",
+      "NI device name from the existing local program.",
+      "沿用现有本地程序中的 NI 设备名称。"
+    ],
+    [
+      "p.sdkFolder = 'C:\\AlazarTech\\ATS-SDK\\23.3.0\\Samples_MATLAB\\Include';",
+      "Windows folder containing AlazarDefs and the SDK MATLAB wrappers.",
+      "Windows 上包含 AlazarDefs 和 SDK MATLAB 函数的目录。"
+    ],
+    [
+      "p.niRate = 200e3;",
+      "NI outputs 200,000 table rows per second; one row lasts 5 microseconds.",
+      "NI 每秒输出 200000 行时序，每行持续 5 微秒。"
+    ],
+    [
+      "p.atsRate = 180e6;",
+      "ATS samples CH A at 180 million samples/s; checked against the hardware setup below.",
+      "ATS 对 CH A 每秒采样 1.8 亿点；后面会检查与板卡设置一致。"
+    ],
+    [
+      "p.rangeV = 4;",
+      "CH A range is minus 4 to plus 4 volts, not a 4-volt total span.",
+      "CH A 量程为负 4 至正 4 伏，总跨度不是 4 伏。"
+    ],
+    [
+      "p.stepUm = 0.5;",
+      "Historical X/Y calibration in micrometres per STEP; recheck if driver settings changed.",
+      "历史 X/Y 标定为每 STEP 0.5 微米；驱动设置改变后需复核。"
+    ],
+    [
+      "p.speedMmS = 1;",
+      "Teaching choice: 1 mm/s for X, return, and Y; no acceleration ramp in this small example.",
+      "教学设置：X、回程和 Y 都用 1 毫米/秒；小范围示例不加加速段。"
+    ],
+    [
+      "p.nx = 20;",
+      "Number of X bins/records in each row, not the number of motor steps.",
+      "每行的 X 分箱或记录数，不是电机步数。"
+    ],
+    [
+      "p.ny = 3;",
+      "Number of Y rows in the C-scan.",
+      "C-scan 的 Y 行数。"
+    ],
+    [
+      "p.dxUm = 5;",
+      "Nominal distance between NPT triggers or width of one TS time bin.",
+      "NPT 触发间的名义距离，或 TS 一个时间分箱对应的名义宽度。"
+    ],
+    [
+      "p.dyUm = 1;",
+      "Commanded Y spacing between adjacent scan rows.",
+      "相邻扫描行之间的 Y 命令间距。"
+    ],
+    [
+      "p.startStep = 10;",
+      "Send the first acquisition trigger after this many X STEP cycles.",
+      "完成这么多个 X STEP 周期后发出第一个采集触发。"
+    ],
+    [
+      "p.settleS = 0.02;",
+      "Hold position before and after each move; this is a chosen delay, not measured settling.",
+      "每段运动前后等待 0.02 秒；这是设置值，不是已测得的停稳时间。"
+    ],
+    [
+      "p.recordSamples = 1024;",
+      "NPT samples per trigger: about 5.69 microseconds at 180 MS/s.",
+      "NPT 每个触发采 1024 点，在 180 MS/s 下约为 5.69 微秒。"
+    ],
+    [
+      "p.streamBufferSamples = 524288;",
+      "TS transfers this many samples per DMA buffer; a buffer is not a laser pulse.",
+      "TS 每个 DMA 缓冲区传输这么多点；一个缓冲区不等于一个激光脉冲。"
+    ],
+    [
+      "p.bufferCount = 4;",
+      "Reuse four DMA buffers instead of allocating one for every transfer.",
+      "循环复用四个 DMA 缓冲区，不为每次传输分配一个。"
+    ],
+    [
+      "p.timeoutMs = 3000;",
+      "Fail a buffer wait after 3 seconds instead of waiting forever in MATLAB.",
+      "MATLAB 等待缓冲区超过 3 秒就报错，不一直等待。"
+    ],
+    [
+      "p.triggerLevelCode = 150;",
+      "External trigger threshold code from the existing program; this is not 150 volts.",
+      "沿用现有程序的外触发阈值编码 150，它不是 150 伏。"
+    ],
+    [
+      "p.outputRoot = fullfile(pwd, 'simple_cscan_data');",
+      "Put each real scan in its own subfolder here.",
+      "每次真实扫描的数据分别保存在这里的子目录中。"
+    ],
+    [
+      "end",
+      "Return the settings structure p.",
+      "返回参数结构体 p。"
+    ]
+  ],
+  "make_scan_sequence.m": [
+    [
+      "function s = make_scan_sequence(p, mode)",
+      "Build all motion and trigger arrays without touching hardware.",
+      "只生成运动和触发数组，不操作硬件。"
+    ],
+    [
+      "assert(ismember(mode, [\"NPT\", \"TS\"]), 'Use NPT or TS.');",
+      "Accept only the two implemented modes.",
+      "只接受已经实现的两种模式。"
+    ],
+    [
+      "validateattributes(p.nx, {'numeric'}, {'scalar','integer','positive','finite'});",
+      "Require a positive whole number of X positions.",
+      "要求 X 位置数是有限的正整数。"
+    ],
+    [
+      "validateattributes(p.ny, {'numeric'}, {'scalar','integer','positive','finite'});",
+      "Require a positive whole number of Y rows.",
+      "要求 Y 行数是有限的正整数。"
+    ],
+    [
+      "validateattributes(p.startStep, {'numeric'}, {'scalar','integer','nonnegative','finite'});",
+      "The chosen starting step cannot be negative or fractional.",
+      "指定起始步不能为负数或小数。"
+    ],
+    [
+      "assert(all(isfinite([p.stepUm p.dxUm p.dyUm p.speedMmS p.niRate p.settleS])) & all([p.stepUm p.dxUm p.dyUm p.speedMmS p.niRate] > 0), 'Use positive finite motion settings.');",
+      "Reject zero, negative, or nonfinite motion parameters.",
+      "拒绝零值、负值或非有限的运动参数。"
+    ],
+    [
+      "assert(p.speedMmS <= 4 & p.settleS >= 0.001, 'This no-ramp example requires speed <= 4 mm/s and settle >= 1 ms.');",
+      "Keep this simple no-ramp design within the historical low-speed range.",
+      "将这个无加速段示例限制在历史低速范围内，并保留方向建立时间。"
+    ],
+    [
+      "s.stepTicks = p.niRate * p.stepUm / (1000 * p.speedMmS);",
+      "Number of NI time ticks in one motor STEP cycle.",
+      "一个电机 STEP 周期包含的 NI 时钟点数。"
+    ],
+    [
+      "s.stepsPerPixel = p.dxUm / p.stepUm;",
+      "Convert X spacing from micrometres to motor steps.",
+      "把 X 间距从微米换算为电机步数。"
+    ],
+    [
+      "ySteps = p.dyUm / p.stepUm;",
+      "Convert one Y row spacing to motor steps.",
+      "把一行 Y 间距换算为电机步数。"
+    ],
+    [
+      "counts = [s.stepTicks s.stepsPerPixel ySteps];",
+      "Collect the values that must fit the discrete output grid.",
+      "收集必须落在离散输出网格上的数值。"
+    ],
+    [
+      "assert(all(abs(counts-round(counts)) < 1e-9) & s.stepTicks >= 2, 'Choose integer ticks/step and integer steps/spacing.');",
+      "Do not silently round speed or spatial spacing.",
+      "不悄悄舍入速度或空间间距；不合适就报错。"
+    ],
+    [
+      "s.stepTicks = round(s.stepTicks);",
+      "Remove harmless floating-point roundoff after checking.",
+      "检查后去掉浮点计算产生的微小误差。"
+    ],
+    [
+      "s.stepsPerPixel = round(s.stepsPerPixel);",
+      "Store an exact integer step count.",
+      "保存精确的整数步数。"
+    ],
+    [
+      "ySteps = round(ySteps);",
+      "Store the exact integer Y step count.",
+      "保存精确的 Y 整数步数。"
+    ],
+    [
+      "s.pixelTicks = s.stepTicks * s.stepsPerPixel;",
+      "NI time ticks between successive planned X positions.",
+      "相邻计划 X 位置之间的 NI 时钟点数。"
+    ],
+    [
+      "s.pixelSeconds = s.pixelTicks / p.niRate;",
+      "Time represented by one X bin.",
+      "每个 X 分箱代表的时间。"
+    ],
+    [
+      "s.rowSeconds = p.nx * s.pixelSeconds;",
+      "Duration of the retained TS row, measured from its first trigger.",
+      "TS 保留的整行时间长度，从第一个触发开始计算。"
+    ],
+    [
+      "s.xSteps = p.startStep + p.nx * s.stepsPerPixel;",
+      "Total X motion includes the lead-in steps before the acquisition region.",
+      "X 总运动包括采集区域之前的引入步数。"
+    ],
+    [
+      "assert(s.xSteps*p.stepUm <= 5000 & (p.ny-1)*p.dyUm <= 5000, 'Keep this teaching scan within 5 mm per axis.');",
+      "Bound the relative command travel; this does not check the physical stage limits.",
+      "限制相对命令行程；这不能检查滑台当前是否接近物理限位。"
+    ],
+    [
+      "s.forward = move_table(s.xSteps, 1, true, p, s.stepTicks);",
+      "Make X-forward motion with five output columns.",
+      "生成 X 正向运动，时序表有五列。"
+    ],
+    [
+      "s.back = move_table(s.xSteps, 1, false, p, s.stepTicks);",
+      "Return X by exactly the commanded forward step count.",
+      "X 回程使用与去程相同的命令步数。"
+    ],
+    [
+      "s.yNext = move_table(ySteps, 3, true, p, s.stepTicks);",
+      "Move Y forward by one row spacing.",
+      "将 Y 正向移动一个行间距。"
+    ],
+    [
+      "s.yHome = move_table((p.ny-1)*ySteps, 3, false, p, s.stepTicks);",
+      "Reverse the accumulated Y commands after a successful full scan.",
+      "整幅扫描成功后，反向走完累计的 Y 命令步数。"
+    ],
+    [
+      "s.firstTick = round(p.settleS*p.niRate) + p.startStep*s.stepTicks + 1;",
+      "MATLAB index of the first trigger; index 1 is time zero.",
+      "第一个触发的 MATLAB 索引；索引 1 对应零时刻。"
+    ],
+    [
+      "s.triggerTicks = s.firstTick + (0:p.nx-1)*s.pixelTicks;",
+      "Planned NPT trigger indices across one row.",
+      "一行内各个计划 NPT 触发的索引。"
+    ],
+    [
+      "if mode == \"TS\"",
+      "Triggered Streaming needs only the first trigger in the row.",
+      "Triggered Streaming 每行只需要第一个触发。"
+    ],
+    [
+      "    s.triggerTicks = s.firstTick;",
+      "Remove all later trigger commands.",
+      "删除后续所有触发命令。"
+    ],
+    [
+      "end",
+      "Finish choosing the trigger pattern.",
+      "结束触发模式选择。"
+    ],
+    [
+      "s.forward(s.triggerTicks, 5) = true;",
+      "Column 5 sends a one-NI-tick pulse at each chosen time.",
+      "第五列在指定时刻输出宽度为一个 NI 时钟点的脉冲。"
+    ],
+    [
+      "s.xStartUm = p.startStep*p.stepUm + (0:p.nx-1)*p.dxUm;",
+      "Nominal commanded coordinates at the start of each bin.",
+      "每个分箱起始时刻对应的名义命令坐标。"
+    ],
+    [
+      "s.yUm = (0:p.ny-1)*p.dyUm;",
+      "Relative commanded Y coordinates; the first row is zero.",
+      "相对 Y 命令坐标；第一行为零。"
+    ],
+    [
+      "end",
+      "Finish building the scan sequence.",
+      "完成扫描时序生成。"
+    ],
+    [
+      "function table = move_table(nSteps, stepColumn, direction, p, period)",
+      "Build a single X or Y movement with no acquisition triggers.",
+      "生成一段 X 或 Y 运动，不产生采集触发。"
+    ],
+    [
+      "lead = round(p.settleS*p.niRate);",
+      "Convert the pre/post wait to NI table rows.",
+      "将运动前后等待时间换算为 NI 表格行数。"
+    ],
+    [
+      "pattern = [true(floor(period/2),1); false(ceil(period/2),1)];",
+      "One high-then-low STEP cycle; this setup uses the falling edge.",
+      "一个先高后低的 STEP 周期；现有接法使用下降沿。"
+    ],
+    [
+      "train = repmat(pattern, nSteps, 1);",
+      "Repeat that cycle once for every commanded step.",
+      "每个命令步重复一次这个周期。"
+    ],
+    [
+      "table = false(2*lead + numel(train) + 1, 5);",
+      "Reserve five columns: X STEP, X DIR, Y STEP, Y DIR, acquisition trigger.",
+      "创建五列：X STEP、X DIR、Y STEP、Y DIR、采集触发。"
+    ],
+    [
+      "table(:,2) = true;",
+      "Default X direction to the historical positive direction.",
+      "X 方向默认使用历史正向电平。"
+    ],
+    [
+      "table(:,4) = true;",
+      "Default Y direction to the historical positive direction.",
+      "Y 方向默认使用历史正向电平。"
+    ],
+    [
+      "table(:,stepColumn+1) = direction;",
+      "Set the direction for the axis that will move.",
+      "设置此次要运动的轴的方向。"
+    ],
+    [
+      "table(lead+(1:numel(train)),stepColumn) = train;",
+      "Insert the STEP train between the two quiet intervals.",
+      "将 STEP 脉冲串放在前后两个静止等待段之间。"
+    ],
+    [
+      "end",
+      "Finish the single-movement helper.",
+      "结束单段运动辅助函数。"
+    ]
+  ],
+  "cscan_preview.m": [
+    [
+      "function values = cscan_preview(raw, p, mode)",
+      "Make a basic voltage-range preview; this is not depth reconstruction.",
+      "生成简单的电压范围预览；这里没有做深度重建。"
+    ],
+    [
+      "if mode == \"NPT\"",
+      "In NPT, every column is one triggered short record.",
+      "NPT 中，每列是一条触发后的短记录。"
+    ],
+    [
+      "    block = reshape(raw, p.recordSamples, p.nx);",
+      "Put samples down the rows and X records across the columns.",
+      "每列沿纵向放采样点，横向排列不同 X 记录。"
+    ],
+    [
+      "else",
+      "In TS, divide continuous time into nominal X bins.",
+      "TS 中，将连续时间划分为名义 X 分箱。"
+    ],
+    [
+      "    block = reshape(raw, [], p.nx);",
+      "Equal-duration bins are not individual laser pulses.",
+      "等时间分箱不等于逐个激光脉冲。"
+    ],
+    [
+      "end",
+      "Finish choosing the data layout.",
+      "结束数据排列方式选择。"
+    ],
+    [
+      "span = double(max(block,[],1)) - double(min(block,[],1));",
+      "Find the largest minus smallest ADC code in each column.",
+      "计算每列最大 ADC 编码减最小 ADC 编码。"
+    ],
+    [
+      "values = span * (2*p.rangeV/65535);",
+      "Convert the code difference to volts for a 16-bit unsigned ADC.",
+      "对 16 位无符号 ADC，将编码差换算为伏特。"
+    ],
+    [
+      "end",
+      "Return one preview value per X bin.",
+      "每个 X 分箱返回一个预览值。"
+    ]
+  ],
+  "run_cscan.m": [
+    [
+      "function result = run_cscan(p, mode)",
+      "Shared scan procedure so the two versions do not duplicate hardware code.",
+      "两个版本共用扫描流程，避免重复硬件代码。"
+    ],
+    [
+      "s = make_scan_sequence(p, mode);",
+      "Build the hardware-timed motion and trigger plan first.",
+      "先生成由硬件定时执行的运动和触发计划。"
+    ],
+    [
+      "assert(p.atsRate == 180e6 & p.rangeV == 4, 'This example configures 180 MS/s and +/-4 V.');",
+      "Keep numeric metadata consistent with the fixed SDK clock/range constants.",
+      "确保参数记录与下面 SDK 中固定的时钟和量程常量一致。"
+    ],
+    [
+      "assert(p.recordSamples >= 256 & mod(p.recordSamples,32) == 0, 'NPT record length must be >=256 and a multiple of 32.');",
+      "Check the ATS9462 record length rule.",
+      "检查 ATS9462 的记录长度限制。"
+    ],
+    [
+      "assert(p.recordSamples/p.atsRate < s.pixelSeconds, 'The NPT window must finish before the next trigger.');",
+      "Do not request overlapping NPT records.",
+      "不要求 NPT 记录相互重叠。"
+    ],
+    [
+      "validateattributes(p.streamBufferSamples, {'numeric'}, {'scalar','integer','>=',256,'finite'});",
+      "A streaming buffer must have a valid whole sample count.",
+      "Streaming 缓冲区必须包含有效的整数个采样点。"
+    ],
+    [
+      "assert(mod(p.streamBufferSamples,32) == 0 & p.streamBufferSamples <= 2^20, 'Use an aligned TS buffer no larger than 2^20 samples.');",
+      "Keep streaming transfers aligned and small.",
+      "保持 streaming 传输长度对齐，并限制单次传输大小。"
+    ],
+    [
+      "validateattributes(p.bufferCount, {'numeric'}, {'scalar','integer','>=',2,'<=',16});",
+      "Require a small ring with at least two buffers.",
+      "要求缓冲环至少两个且不超过十六个。"
+    ],
+    [
+      "validateattributes(p.timeoutMs, {'numeric'}, {'scalar','positive','finite'});",
+      "The MATLAB buffer timeout must be finite and positive.",
+      "MATLAB 的缓冲区等待超时必须有限且为正。"
+    ],
+    [
+      "validateattributes(p.triggerLevelCode, {'numeric'}, {'scalar','integer','>=',0,'<=',255});",
+      "The trigger threshold is an 8-bit code.",
+      "触发阈值是 8 位编码。"
+    ],
+    [
+      "samplesPerBin = round(s.pixelSeconds*p.atsRate);",
+      "Convert a nominal TS bin duration to a whole sample count.",
+      "将 TS 分箱的名义时长换算为整数采样点数。"
+    ],
+    [
+      "assert(abs(samplesPerBin-s.pixelSeconds*p.atsRate) < 1e-6, 'Choose a pixel duration with a whole number of ATS samples.');",
+      "Avoid silently changing the bin duration.",
+      "避免悄悄改变分箱的时间长度。"
+    ],
+    [
+      "assert(2*samplesPerBin*p.nx <= 256*2^20, 'Keep a TS row below 256 MiB for this teaching example.');",
+      "Bound the one-row raw allocation even though DMA buffers are reused.",
+      "即使 DMA 缓冲区循环复用，也限制整行原始数据占用。"
+    ],
+    [
+      "result = struct('settings',p,'mode',mode,'sequence',s,'previewV',nan(p.ny,p.nx),'rowsDone',0,'complete',false,'hardwareRun',false,'folder','');",
+      "Keep settings, planned timing, progress, and preview together.",
+      "将参数、计划时序、进度和预览结果放在一起。"
+    ],
+    [
+      "if p.showPlot",
+      "Plot only if requested.",
+      "根据设置决定是否画图。"
+    ],
+    [
+      "    figure('Name', 'Planned timing / 计划时序');",
+      "Open a timing figure.",
+      "打开时序图窗口。"
+    ],
+    [
+      "    plot((0:size(s.forward,1)-1)/p.niRate, double(s.forward(:,[1 5])));",
+      "Plot the planned X STEP and acquisition trigger against NI time.",
+      "按 NI 时间画出计划的 X STEP 和采集触发。"
+    ],
+    [
+      "    legend('X STEP','Acquisition trigger'); xlabel('NI time (s)');",
+      "Identify the two signals and their time unit.",
+      "标注两路信号和时间单位。"
+    ],
+    [
+      "end",
+      "Finish plotting the plan.",
+      "结束计划时序绘图。"
+    ],
+    [
+      "if ~p.runHardware",
+      "Stop here in the default offline mode.",
+      "默认离线模式到这里就停止。"
+    ],
+    [
+      "    disp('Plan only: no hardware used and no measured image produced.');",
+      "Make clear that planned timing is not experimental data.",
+      "明确说明计划时序不是实验数据。"
+    ],
+    [
+      "    return",
+      "Return the plan without opening NI or ATS.",
+      "不打开 NI 或 ATS，直接返回计划。"
+    ],
+    [
+      "end",
+      "Everything below this point uses real laboratory hardware.",
+      "从这里往下才会使用实验室真实硬件。"
+    ],
+    [
+      "assert(ispc, 'Run hardware only on the laboratory Windows PC.');",
+      "The Mac can study and check the code, but has no attached cards.",
+      "Mac 可学习和检查代码，但没有连接这些板卡。"
+    ],
+    [
+      "assert(isfolder(p.sdkFolder), 'Set p.sdkFolder to the installed ATS SDK Include directory.');",
+      "Check the SDK path before starting any movement.",
+      "在任何运动开始前检查 SDK 路径。"
+    ],
+    [
+      "addpath(p.sdkFolder);",
+      "Make the vendor MATLAB functions available.",
+      "让 MATLAB 能找到厂商提供的函数。"
+    ],
+    [
+      "AlazarDefs;",
+      "Load the vendor names for hardware constants.",
+      "载入厂商定义的硬件常量名称。"
+    ],
+    [
+      "alazarLoadLibrary();",
+      "Load the ATS Windows driver library.",
+      "载入 ATS 的 Windows 驱动库。"
+    ],
+    [
+      "board = AlazarGetBoardBySystemID(int32(1), int32(1));",
+      "Select board 1 in system 1.",
+      "选择系统 1 中的第 1 块板卡。"
+    ],
+    [
+      "assert(strcmp(AlazarGetBoardKind(board), 'ATS9462'), 'This example targets ATS9462.');",
+      "Check that the connected board matches this example; the SDK returns the board kind as text, so compare with strcmp.",
+      "检查连接的板卡型号与示例一致；SDK 以字符形式返回板卡型号，因此用 strcmp 比较。"
+    ],
+    [
+      "[memorySamples, bits] = AlazarGetChannelInfo(board);",
+      "Read the onboard memory capacity and ADC resolution.",
+      "读取板载存储容量和 ADC 位数。"
+    ],
+    [
+      "assert(double(bits) == 16 & double(memorySamples) > 0, 'This version requires the 16-bit ATS9462 with onboard memory.');",
+      "Reject the FIFO-only variant because its DMA flags differ.",
+      "FIFO-only 版本的 DMA 标志不同，因此本版不接受它。"
+    ],
+    [
+      "AlazarSetCaptureClock(board, INTERNAL_CLOCK, SAMPLE_RATE_180MSPS, CLOCK_EDGE_RISING, 0);",
+      "Set ATS to its internal 180 MS/s sampling clock.",
+      "将 ATS 设置为内部 180 MS/s 采样时钟。"
+    ],
+    [
+      "AlazarInputControlEx(board, CHANNEL_A, DC_COUPLING, INPUT_RANGE_PM_4_V, IMPEDANCE_50_OHM);",
+      "Configure CH A for DC coupling, +/-4 V, and 50 ohms.",
+      "设置 CH A 为直流耦合、正负 4 伏和 50 欧姆输入。"
+    ],
+    [
+      "AlazarSetBWLimit(board, CHANNEL_A, 0);",
+      "Disable the optional bandwidth limit, as in the existing program.",
+      "与现有程序一样，关闭可选带宽限制。"
+    ],
+    [
+      "AlazarSetExternalTrigger(board, DC_COUPLING, ETR_5V);",
+      "Configure the external trigger input range and coupling.",
+      "设置外触发输入的量程和耦合方式。"
+    ],
+    [
+      "AlazarSetTriggerOperation(board, TRIG_ENGINE_OP_J, TRIG_ENGINE_J, TRIG_EXTERNAL, TRIGGER_SLOPE_POSITIVE, p.triggerLevelCode, TRIG_ENGINE_K, TRIG_DISABLE, TRIGGER_SLOPE_POSITIVE, 128);",
+      "Use rising external triggers on engine J and disable engine K.",
+      "使用引擎 J 检测外部上升沿触发，并关闭引擎 K。"
+    ],
+    [
+      "AlazarSetTriggerDelay(board, 0);",
+      "Request zero programmed delay after the trigger.",
+      "将触发后的可编程延迟设为零。"
+    ],
+    [
+      "AlazarSetTriggerTimeOut(board, 0);",
+      "Disable automatic timeout triggers: no valid edge means no triggered acquisition.",
+      "关闭自动超时触发：没有有效沿就不开始触发采集。"
+    ],
+    [
+      "AlazarConfigureAuxIO(board, AUX_OUT_SERIAL_DATA, 0);",
+      "Hold AUX low; this version does not use AUX pulses or a counter for mapping.",
+      "将 AUX 保持低电平；本版不使用 AUX 脉冲或计数器做位置映射。"
+    ],
+    [
+      "dq = daq(\"ni\");",
+      "Create one NI acquisition/output object.",
+      "创建一个 NI 输入输出对象。"
+    ],
+    [
+      "niGuard = onCleanup(@() stop(dq));",
+      "Stop NI if this function exits normally or with an error.",
+      "此函数正常结束或报错时都停止 NI。"
+    ],
+    [
+      "ai = addinput(dq, p.device, \"ai1\", \"Voltage\");",
+      "Add the AI channel used to provide clocked digital-output timing.",
+      "添加 AI 通道，为定时数字输出提供时钟。"
+    ],
+    [
+      "ai.TerminalConfig = \"Differential\";",
+      "Match the differential input setup in the existing program.",
+      "沿用现有程序中的差分输入设置。"
+    ],
+    [
+      "lines = [\"port0/line0\",\"port0/line1\",\"port0/line2\",\"port0/line3\",\"port0/line6\"];",
+      "Map the five table columns to X STEP/DIR, Y STEP/DIR, and acquisition trigger.",
+      "将五列映射到 X STEP/DIR、Y STEP/DIR 和采集触发。"
+    ],
+    [
+      "for k = 1:numel(lines)",
+      "Add the output lines in exactly the same order as the table.",
+      "按时序表的列顺序添加输出通道。"
+    ],
+    [
+      "    addoutput(dq, p.device, lines(k), \"Digital\");",
+      "Add one NI digital output.",
+      "添加一个 NI 数字输出。"
+    ],
+    [
+      "end",
+      "Finish adding the five output lines; P0.7 is not used.",
+      "五个输出通道添加完成；不使用 P0.7。"
+    ],
+    [
+      "dq.Rate = p.niRate;",
+      "Set the shared NI scan/output sample rate.",
+      "设置 NI 共用的输入输出采样时钟频率。"
+    ],
+    [
+      "assert(abs(dq.Rate-p.niRate) < 1e-6, 'NI changed the requested rate; recompute timing first.');",
+      "Reject unexpected rate coercion rather than mislabel the timing.",
+      "如果 NI 改变请求频率就报错，避免使用错误的时间标签。"
+    ],
+    [
+      "result.folder = fullfile(p.outputRoot, char(mode+\"_\"+string(datetime('now','Format','yyyyMMdd_HHmmss_SSS'))));",
+      "Choose a time-stamped folder for this scan.",
+      "为此次扫描创建带时间戳的目录名。"
+    ],
+    [
+      "assert(~isfolder(result.folder), 'Output folder already exists.');",
+      "Do not overwrite an existing run.",
+      "不覆盖已有的运行数据。"
+    ],
+    [
+      "mkdir(result.folder);",
+      "Create the output folder before motion starts.",
+      "在运动开始前创建输出目录。"
+    ],
+    [
+      "save(fullfile(result.folder,'plan.mat'), 'p', 's', 'mode');",
+      "Save settings and commanded timing even if a later row fails.",
+      "先保存参数和命令时序，后续某行失败时仍可查到计划。"
+    ],
+    [
+      "result.hardwareRun = true;",
+      "Mark that this invocation entered the hardware path.",
+      "标记本次调用已经进入硬件运行路径。"
+    ],
+    [
+      "for row = 1:p.ny",
+      "Repeat one forward acquisition for every Y row.",
+      "每个 Y 行重复一次正向采集。"
+    ],
+    [
+      "    raw = acquire_row(board, dq, p, s, mode);",
+      "Prepare DMA, arm ATS, start NI, and copy this row into MATLAB memory.",
+      "准备 DMA、启动 ATS 等待、启动 NI，并把本行数据复制到 MATLAB。"
+    ],
+    [
+      "    wait_for_ni(dq, size(s.forward,1)/p.niRate);",
+      "Let the whole commanded X move finish before changing direction.",
+      "等整段 X 命令运动结束后再改变方向。"
+    ],
+    [
+      "    preview = cscan_preview(raw, p, mode);",
+      "Calculate one basic amplitude value per X bin.",
+      "为每个 X 分箱计算一个简单幅度值。"
+    ],
+    [
+      "    yUm = s.yUm(row);",
+      "Record the commanded Y coordinate of this row.",
+      "记录这一行的 Y 命令坐标。"
+    ],
+    [
+      "    save(fullfile(result.folder,sprintf('row_%03d.mat',row)), 'raw','preview','yUm','row','-v7.3');",
+      "Save the raw row before moving to the next Y position.",
+      "在移动到下一个 Y 位置前保存本行原始数据。"
+    ],
+    [
+      "    result.previewV(row,:) = preview;",
+      "Put this row into the 2-D preview array.",
+      "把本行预览放入二维数组。"
+    ],
+    [
+      "    result.rowsDone = row;",
+      "Record how many rows were acquired and saved.",
+      "记录已经采集并保存的行数。"
+    ],
+    [
+      "    readwrite(dq, double(s.back), \"OutputFormat\", \"Matrix\");",
+      "Return X with triggers low; blocking is acceptable because ATS has stopped.",
+      "关闭触发并让 X 回程；ATS 已停止，所以这里可以阻塞等待。"
+    ],
+    [
+      "    if row < p.ny",
+      "Do not step Y after the final row.",
+      "最后一行后不再前进 Y。"
+    ],
+    [
+      "        readwrite(dq, double(s.yNext), \"OutputFormat\", \"Matrix\");",
+      "Move Y to the next row while acquisition is stopped.",
+      "在采集停止时把 Y 移动到下一行。"
+    ],
+    [
+      "    end",
+      "Finish the between-row Y move.",
+      "结束行间 Y 移动。"
+    ],
+    [
+      "end",
+      "Finish acquiring every row.",
+      "完成所有行的采集。"
+    ],
+    [
+      "readwrite(dq, double(s.yHome), \"OutputFormat\", \"Matrix\");",
+      "Reverse all commanded Y steps; this is not limit-switch homing.",
+      "反向走完全部 Y 命令步数；这不是通过限位开关归零。"
+    ],
+    [
+      "result.complete = true;",
+      "Mark success only after acquisition and normal commanded returns finish.",
+      "只有采集及正常命令回程全部完成后才标记成功。"
+    ],
+    [
+      "save(fullfile(result.folder,'summary.mat'), 'result');",
+      "Save the preview and completion status.",
+      "保存预览图数据和完成状态。"
+    ],
+    [
+      "if p.showPlot",
+      "Show the measured preview if requested.",
+      "根据设置决定是否显示实测预览。"
+    ],
+    [
+      "    figure('Name','Amplitude preview / 幅度预览');",
+      "Open a separate figure for the preview.",
+      "为预览图打开单独窗口。"
+    ],
+    [
+      "    imagesc(s.xStartUm, s.yUm, result.previewV); axis xy; colorbar;",
+      "Display volts against nominal commanded coordinates.",
+      "按名义命令坐标显示以伏特为单位的结果。"
+    ],
+    [
+      "    xlabel('Nominal X bin start (um)'); ylabel('Commanded Y (um)');",
+      "Label the axes without claiming measured spatial accuracy.",
+      "标注坐标，但不把命令坐标说成已测得的精确位置。"
+    ],
+    [
+      "    title(mode+\": voltage-range preview, not depth reconstruction\");",
+      "State explicitly what the displayed quantity means.",
+      "明确说明显示的是电压范围预览，不是深度重建。"
+    ],
+    [
+      "end",
+      "Finish preview display.",
+      "结束预览绘图。"
+    ],
+    [
+      "end",
+      "Finish the shared C-scan procedure.",
+      "结束共用 C-scan 流程。"
+    ],
+    [
+      "function raw = acquire_row(board, dq, p, s, mode)",
+      "Acquire exactly one row using mode-specific DMA settings.",
+      "按所选模式的 DMA 设置采集一行。"
+    ],
+    [
+      "AlazarDefs;",
+      "Make SDK constants available inside this local function.",
+      "在此局部函数中载入 SDK 常量。"
+    ],
+    [
+      "if mode == \"NPT\"",
+      "Choose the short-record acquisition layout.",
+      "选择短记录采集布局。"
+    ],
+    [
+      "    samples = p.recordSamples;",
+      "Number of samples in each NPT record.",
+      "每条 NPT 记录的采样点数。"
+    ],
+    [
+      "    records = gcd(p.nx,10);",
+      "Group up to ten records per buffer while dividing nx exactly.",
+      "每个缓冲区最多放十条记录，并保证正好整除 nx。"
+    ],
+    [
+      "    acquisitionRecords = p.nx;",
+      "Request exactly one triggered record per planned X position.",
+      "每个计划 X 位置请求一条触发记录。"
+    ],
+    [
+      "    wanted = samples*p.nx;",
+      "Total number of ADC samples to retain in this row.",
+      "本行需要保留的 ADC 总采样点数。"
+    ],
+    [
+      "    flags = bitor(ADMA_EXTERNAL_STARTCAPTURE, ADMA_NPT);",
+      "NPT waits for triggers after the explicit StartCapture call.",
+      "NPT 在显式调用 StartCapture 后等待触发。"
+    ],
+    [
+      "    AlazarSetRecordSize(board, 0, samples);",
+      "Use zero pre-trigger samples and the chosen post-trigger length.",
+      "使用零个预触发点和指定数量的触发后采样点。"
+    ],
+    [
+      "else",
+      "Choose the per-row Triggered Streaming layout.",
+      "选择每行触发一次的连续采样布局。"
+    ],
+    [
+      "    samples = p.streamBufferSamples;",
+      "Transfer this many samples in each streaming buffer.",
+      "每个 streaming 缓冲区传输这么多采样点。"
+    ],
+    [
+      "    records = 1;",
+      "SDK streaming modes require one record per buffer.",
+      "SDK 的 streaming 模式要求每缓冲区记录数设为一。"
+    ],
+    [
+      "    acquisitionRecords = hex2dec('7FFFFFFF');",
+      "SDK streaming convention: keep going until AbortAsyncRead.",
+      "SDK 的 streaming 约定：持续采集，直到调用 AbortAsyncRead。"
+    ],
+    [
+      "    wanted = round(s.pixelSeconds*p.atsRate)*p.nx;",
+      "Retain the requested duration by counting samples, not by a software stopwatch.",
+      "按采样点数保留指定时间段，不依赖软件秒表决定数据长度。"
+    ],
+    [
+      "    flags = bitor(ADMA_EXTERNAL_STARTCAPTURE, ADMA_TRIGGERED_STREAMING);",
+      "Wait for the first hardware trigger, then sample without gaps.",
+      "等待第一个硬件触发，然后不间断采样。"
+    ],
+    [
+      "end",
+      "Finish selecting NPT or TS parameters.",
+      "结束 NPT 或 TS 参数选择。"
+    ],
+    [
+      "perBuffer = samples*records;",
+      "Total 16-bit samples transferred by one buffer.",
+      "一个缓冲区传输的 16 位采样点总数。"
+    ],
+    [
+      "bytes = 2*perBuffer;",
+      "A 16-bit sample occupies two bytes.",
+      "一个 16 位采样点占两个字节。"
+    ],
+    [
+      "nBuffers = ceil(wanted/perBuffer);",
+      "Read enough complete buffers to cover the desired row.",
+      "读取足够多的完整缓冲区，以覆盖需要的整行数据。"
+    ],
+    [
+      "ringSize = min(p.bufferCount,nBuffers);",
+      "Allocate only as many ring buffers as this row can use.",
+      "只分配本行实际能用到的缓冲区数量。"
+    ],
+    [
+      "buffers = cell(1,ringSize);",
+      "Keep the DMA memory pointers in a cell array.",
+      "用 cell 数组保存 DMA 内存指针。"
+    ],
+    [
+      "raw = zeros(wanted,1,'uint16');",
+      "Allocate one row of raw unsigned ADC codes.",
+      "为一行无符号 ADC 原始编码分配内存。"
+    ],
+    [
+      "try",
+      "Also clean up a partially allocated ring if memory allocation fails.",
+      "内存分配中途失败时，也要清理已经分配的部分。"
+    ],
+    [
+      "for k = 1:ringSize",
+      "Allocate the small reusable ring.",
+      "分配小型可循环复用缓冲环。"
+    ],
+    [
+      "    buffers{k} = AlazarAllocBuffer(board, bytes);",
+      "Ask the SDK for DMA-compatible memory.",
+      "向 SDK 申请可用于 DMA 的内存。"
+    ],
+    [
+      "end",
+      "Finish allocation before starting acquisition.",
+      "在开始采集前完成内存分配。"
+    ],
+    [
+      "catch err",
+      "Handle a failure before the normal cleanup guard exists.",
+      "处理正常清理对象建立之前发生的分配失败。"
+    ],
+    [
+      "    release_buffers(board, buffers);",
+      "Free any DMA buffers already allocated.",
+      "释放此前已经分配的 DMA 缓冲区。"
+    ],
+    [
+      "    rethrow(err);",
+      "Preserve and report the original allocation error.",
+      "保留并报告原来的分配错误。"
+    ],
+    [
+      "end",
+      "Finish the allocation error handler.",
+      "结束分配错误处理。"
+    ],
+    [
+      "rowGuard = onCleanup(@() release_buffers(board, buffers));",
+      "Capture the completed pointer list for cleanup on return or error.",
+      "保存完整指针列表，正常返回或报错时都用它清理。"
+    ],
+    [
+      "AlazarBeforeAsyncRead(board, CHANNEL_A, 0, samples, records, acquisitionRecords, flags);",
+      "Describe the acquisition and transfer layout to the board.",
+      "向板卡指定采集方式和数据传输布局。"
+    ],
+    [
+      "for k = 1:ringSize",
+      "Give every initial buffer to the board.",
+      "将所有初始缓冲区交给板卡。"
+    ],
+    [
+      "    AlazarPostAsyncBuffer(board, buffers{k}, bytes);",
+      "Queue one empty buffer for incoming ADC data.",
+      "排队提交一个空缓冲区，等待 ADC 数据填入。"
+    ],
+    [
+      "end",
+      "The board now has empty buffers available.",
+      "此时板卡已经有可用的空缓冲区。"
+    ],
+    [
+      "preload(dq, double(s.forward));",
+      "Queue NI motion and trigger data without starting it.",
+      "预载 NI 运动和触发时序，但先不启动。"
+    ],
+    [
+      "AlazarStartCapture(board);",
+      "Arm ATS first; it waits for the controlled external trigger.",
+      "先启动 ATS 等待；它会等待受控的外部触发。"
+    ],
+    [
+      "start(dq);",
+      "Start the NI hardware-timed sequence after ATS is armed.",
+      "ATS 准备等待后，再启动 NI 硬件定时时序。"
+    ],
+    [
+      "for b = 1:nBuffers",
+      "Copy completed buffers until the desired row is covered.",
+      "逐个复制完成的缓冲区，直到覆盖需要的整行数据。"
+    ],
+    [
+      "    k = mod(b-1,ringSize)+1;",
+      "Cycle through buffer indices 1, 2, ..., ringSize.",
+      "循环选择第 1、2、直到 ringSize 个缓冲区。"
+    ],
+    [
+      "    AlazarWaitAsyncBufferComplete(board, buffers{k}, p.timeoutMs);",
+      "Wait until this buffer is full; timeout/overflow raises an error.",
+      "等待此缓冲区填满；超时或溢出会报错。"
+    ],
+    [
+      "    setdatatype(buffers{k}, 'uint16Ptr', 1, perBuffer);",
+      "Interpret the DMA bytes as 16-bit unsigned samples.",
+      "将 DMA 字节解释为 16 位无符号采样点。"
+    ],
+    [
+      "    first = (b-1)*perBuffer+1;",
+      "Find where this buffer belongs in the row array.",
+      "计算此缓冲区在整行数组中的起始位置。"
+    ],
+    [
+      "    count = min(perBuffer,wanted-first+1);",
+      "Trim the final TS buffer to the requested valid sample count.",
+      "将最后一个 TS 缓冲区裁剪到所需的有效采样点数。"
+    ],
+    [
+      "    data = buffers{k}.Value;",
+      "Copy the completed DMA buffer into a MATLAB value.",
+      "将完成的 DMA 缓冲区复制为 MATLAB 数据。"
+    ],
+    [
+      "    raw(first:first+count-1) = data(1:count);",
+      "Append the valid part of this buffer in chronological order.",
+      "按时间顺序追加此缓冲区的有效部分。"
+    ],
+    [
+      "    if b+ringSize <= nBuffers",
+      "Reuse this buffer only when a later transfer will need it.",
+      "只有后续传输还需要它时才再次提交。"
+    ],
+    [
+      "        AlazarPostAsyncBuffer(board, buffers{k}, bytes);",
+      "Return the copied buffer to the DMA queue.",
+      "将已经复制完的缓冲区重新交回 DMA 队列。"
+    ],
+    [
+      "    end",
+      "Finish deciding whether to reuse this buffer.",
+      "结束是否复用缓冲区的判断。"
+    ],
+    [
+      "end",
+      "All requested samples have now been copied.",
+      "所有需要的采样点已经复制完成。"
+    ],
+    [
+      "AlazarAbortAsyncRead(board);",
+      "Stop ATS before processing data or starting the return motion.",
+      "在处理数据或开始回程前停止 ATS。"
+    ],
+    [
+      "clear rowGuard",
+      "Abort again harmlessly, then release the allocated DMA memory now.",
+      "再次中止并立即释放已分配的 DMA 内存。"
+    ],
+    [
+      "end",
+      "Finish this row acquisition function.",
+      "结束本行采集函数。"
+    ],
+    [
+      "function release_buffers(board, buffers)",
+      "Clean up the explicit pointer list passed by the caller.",
+      "清理由调用者明确传入的缓冲区指针列表。"
+    ],
+    [
+      "        try",
+      "Abort must succeed before any DMA buffer is freed.",
+      "释放任何 DMA 缓冲区之前必须成功中止采集。"
+    ],
+    [
+      "            AlazarAbortAsyncRead(board);",
+      "Stop acquisition and release the board's claim on queued buffers.",
+      "停止采集，解除板卡对已提交缓冲区的使用。"
+    ],
+    [
+      "        catch err",
+      "Handle an abort failure without hiding the original error.",
+      "处理中止失败，同时避免掩盖原始错误。"
+    ],
+    [
+      "            warning('SimpleCscan:Abort','DMA abort failed; buffers retained: %s',err.message);",
+      "Keep memory allocated when the board might still be using it.",
+      "板卡可能仍在使用这些内存时，不释放它们。"
+    ],
+    [
+      "            return",
+      "Do not free possibly active DMA memory.",
+      "不释放可能仍在使用的 DMA 内存。"
+    ],
+    [
+      "        end",
+      "A successful abort makes freeing buffers appropriate.",
+      "成功中止后才能释放缓冲区。"
+    ],
+    [
+      "        for j = 1:numel(buffers)",
+      "Visit every pointer that may have been allocated.",
+      "检查每个可能已分配的指针。"
+    ],
+    [
+      "            if ~isempty(buffers{j})",
+      "Skip cells whose allocation never completed.",
+      "跳过尚未成功分配的空单元。"
+    ],
+    [
+      "                AlazarFreeBuffer(board, buffers{j});",
+      "Return this DMA allocation to the SDK.",
+      "通过 SDK 释放这一块 DMA 内存。"
+    ],
+    [
+      "            end",
+      "Finish checking this allocation.",
+      "结束此内存块的判断。"
+    ],
+    [
+      "        end",
+      "Finish freeing the buffer ring.",
+      "缓冲环释放完毕。"
+    ],
+    [
+      "end",
+      "Finish the DMA cleanup function.",
+      "结束 DMA 清理函数。"
+    ],
+    [
+      "function wait_for_ni(dq, durationS)",
+      "Wait for the remaining finite NI motion without changing the ATS sample count.",
+      "等待剩余的有限 NI 运动；不改变 ATS 保留的采样点数。"
+    ],
+    [
+      "timer = tic;",
+      "Start a watchdog for a stuck NI operation, not an acquisition timing reference.",
+      "启动 NI 卡住时的监测秒表；它不是采集时间基准。"
+    ],
+    [
+      "while dq.Running",
+      "Continue waiting while NI is still outputting the sequence.",
+      "NI 仍在输出时序时继续等待。"
+    ],
+    [
+      "    assert(toc(timer) < durationS+5, 'NI did not finish its finite sequence.');",
+      "Report a stuck run rather than wait forever.",
+      "如果有限时序一直未结束就报错，不无限等待。"
+    ],
+    [
+      "    pause(0.005);",
+      "Yield MATLAB briefly while the NI hardware keeps working.",
+      "MATLAB 短暂让出执行时间，NI 硬件仍继续工作。"
+    ],
+    [
+      "end",
+      "NI has completed its finite output.",
+      "NI 已完成有限长度的输出。"
+    ],
+    [
+      "read(dq, \"all\", \"OutputFormat\", \"Matrix\");",
+      "Drain the unused AI samples so they do not accumulate across rows.",
+      "读掉不用的 AI 样本，防止它们逐行积累。"
+    ],
+    [
+      "end",
+      "Finish the NI waiting helper.",
+      "结束 NI 等待辅助函数。"
+    ]
+  ]
+}

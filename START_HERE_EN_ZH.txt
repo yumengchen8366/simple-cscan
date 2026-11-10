@@ -1,0 +1,36 @@
+Simple C-scan: NPT and per-row Triggered Streaming
+简单 C-scan：NPT 和每行触发一次的 Triggered Streaming
+
+1. Open Cscan_line_by_line_EN_ZH.html. Every executable/source line has English and Chinese explanation columns beside the code.
+   打开 Cscan_line_by_line_EN_ZH.html，每行代码旁有英文和中文两列解释。
+2. Keep all six .m files in one folder. In MATLAB, make that folder the Current Folder.
+   六个 .m 文件放在同一目录，并在 MATLAB 中将它设为当前目录。
+3. Start without hardware / 先离线运行：
+   p = cscan_settings();
+   p.runHardware = false;
+   a = cscan_npt(p);
+   b = cscan_triggered_streaming(p);
+   This plots the planned timing only; it does not make up experimental data.
+   以上只画计划时序，不生成虚假的实验数据。
+
+Read the code in this order / 建议阅读顺序：
+- cscan_settings.m: the parameters / 参数
+- make_scan_sequence.m: STEP, DIR, trigger arrays / STEP、DIR、触发数组
+- cscan_npt.m and cscan_triggered_streaming.m: choose the mode / 选择模式
+- run_cscan.m: real acquisition and row loop / 真实采集和逐行循环
+- cscan_preview.m: basic voltage-range preview / 简单电压范围预览
+
+The defaults are a small teaching scan: 1 mm/s, 20 X positions, 3 Y rows, 5 um X spacing and 1 um Y spacing. The first trigger is after 10 motor cycles. No acceleration ramp is included, so this is not a direct replacement for the old 10 mm/s scan.
+默认是小型教学扫描：1 mm/s、20 个 X 位置、3 个 Y 行、X 间距 5 um、Y 间距 1 um；第一个触发在 10 个电机周期之后。本版没有加速段，不直接替代原来的 10 mm/s 扫描。
+
+NPT produces one short record per planned X position (default 200 triggers/s). It does not retain the previous free-running 100 kHz input. TS waits for one controlled start trigger per row and retains continuous data for that row.
+NPT 在每个计划 X 位置采一条短记录（默认每秒 200 次触发），不是原来的自由运行 100 kHz 触发方案。TS 每行等待一个受控起点触发，然后保留整行连续数据。
+
+Before changing runHardware to true on the lab Windows PC, read the guide's wiring contract. The P0.6-to-ATS trigger route must use a suitable verified interface. Historical ATS TRIG IN loading is about 50 ohms; do not drive it directly from NI P0.6. Do not leave an uncontrolled trigger source connected. Current BNC USER1/2 connections are not confirmed by this code.
+在实验室 Windows 电脑上把 runHardware 改为 true 前，先读指南中的接线要求。P0.6 到 ATS 的触发路线必须经过验证适配的接口。历史 ATS TRIG IN 负载约为 50 欧姆，不能直接用 NI P0.6 驱动。不能保留不受控的触发源。本程序没有确认当前 BNC USER1/2 的接线。
+
+The preview is max-minus-min voltage, not envelope reconstruction or a depth-resolved PAM image. NPT and TS use different time-window lengths, so their previews are not directly comparable. Real PAM needs a verified laser timing reference and acoustic window; TS does not automatically become A-lines.
+预览值是最大电压减最小电压，不是包络重建或分深度 PAM 图。NPT 与 TS 使用的时间窗口不同，预览值不能直接比较。真实 PAM 需要经过验证的激光时间参考和声信号窗口；TS 不会自动成为 A-line。
+
+The existing Research-PAM scripts were kept unchanged. These are new teaching files, not bench-validated replacements.
+已有 Research-PAM 脚本保持不变；这些是新教学文件，不是已经通过台架验证的替代程序。

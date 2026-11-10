@@ -1,0 +1,23 @@
+function p = cscan_settings() % EN: Keep the parameters together so they are easy to find. | 中文：把参数放在一起，方便查找和修改。
+p.runHardware = false; % EN: Default: calculate and plot the sequence without using either board. | 中文：默认只计算和画时序，不连接两块板卡。
+p.showPlot = true; % EN: Display the planned timing and, after a real run, the preview. | 中文：显示计划时序；真实运行后显示预览图。
+p.device = "Dev1"; % EN: NI device name from the existing local program. | 中文：沿用现有本地程序中的 NI 设备名称。
+p.sdkFolder = 'C:\AlazarTech\ATS-SDK\23.3.0\Samples_MATLAB\Include'; % EN: Windows folder containing AlazarDefs and the SDK MATLAB wrappers. | 中文：Windows 上包含 AlazarDefs 和 SDK MATLAB 函数的目录。
+p.niRate = 200e3; % EN: NI outputs 200,000 table rows per second; one row lasts 5 microseconds. | 中文：NI 每秒输出 200000 行时序，每行持续 5 微秒。
+p.atsRate = 180e6; % EN: ATS samples CH A at 180 million samples/s; checked against the hardware setup below. | 中文：ATS 对 CH A 每秒采样 1.8 亿点；后面会检查与板卡设置一致。
+p.rangeV = 4; % EN: CH A range is minus 4 to plus 4 volts, not a 4-volt total span. | 中文：CH A 量程为负 4 至正 4 伏，总跨度不是 4 伏。
+p.stepUm = 0.5; % EN: Historical X/Y calibration in micrometres per STEP; recheck if driver settings changed. | 中文：历史 X/Y 标定为每 STEP 0.5 微米；驱动设置改变后需复核。
+p.speedMmS = 1; % EN: Teaching choice: 1 mm/s for X, return, and Y; no acceleration ramp in this small example. | 中文：教学设置：X、回程和 Y 都用 1 毫米/秒；小范围示例不加加速段。
+p.nx = 20; % EN: Number of X bins/records in each row, not the number of motor steps. | 中文：每行的 X 分箱或记录数，不是电机步数。
+p.ny = 3; % EN: Number of Y rows in the C-scan. | 中文：C-scan 的 Y 行数。
+p.dxUm = 5; % EN: Nominal distance between NPT triggers or width of one TS time bin. | 中文：NPT 触发间的名义距离，或 TS 一个时间分箱对应的名义宽度。
+p.dyUm = 1; % EN: Commanded Y spacing between adjacent scan rows. | 中文：相邻扫描行之间的 Y 命令间距。
+p.startStep = 10; % EN: Send the first acquisition trigger after this many X STEP cycles. | 中文：完成这么多个 X STEP 周期后发出第一个采集触发。
+p.settleS = 0.02; % EN: Hold position before and after each move; this is a chosen delay, not measured settling. | 中文：每段运动前后等待 0.02 秒；这是设置值，不是已测得的停稳时间。
+p.recordSamples = 1024; % EN: NPT samples per trigger: about 5.69 microseconds at 180 MS/s. | 中文：NPT 每个触发采 1024 点，在 180 MS/s 下约为 5.69 微秒。
+p.streamBufferSamples = 524288; % EN: TS transfers this many samples per DMA buffer; a buffer is not a laser pulse. | 中文：TS 每个 DMA 缓冲区传输这么多点；一个缓冲区不等于一个激光脉冲。
+p.bufferCount = 4; % EN: Reuse four DMA buffers instead of allocating one for every transfer. | 中文：循环复用四个 DMA 缓冲区，不为每次传输分配一个。
+p.timeoutMs = 3000; % EN: Fail a buffer wait after 3 seconds instead of waiting forever in MATLAB. | 中文：MATLAB 等待缓冲区超过 3 秒就报错，不一直等待。
+p.triggerLevelCode = 150; % EN: External trigger threshold code from the existing program; this is not 150 volts. | 中文：沿用现有程序的外触发阈值编码 150，它不是 150 伏。
+p.outputRoot = fullfile(pwd, 'simple_cscan_data'); % EN: Put each real scan in its own subfolder here. | 中文：每次真实扫描的数据分别保存在这里的子目录中。
+end % EN: Return the settings structure p. | 中文：返回参数结构体 p。
